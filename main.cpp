@@ -46,11 +46,11 @@ int main(int argc, char const *argv[])
     try
     {
         std::vector<std::vector<std::string> > ip_pool;
-        std::ifstream ifs("ip_filter.tsv");
-        if (ifs.fail()) {
-            std::cerr << "error" << std::endl;
-            return 1;
-        }
+//        std::ifstream ifs("ip_filter.tsv");
+//        if (ifs.fail()) {
+//            std::cerr << "error" << std::endl;
+//            return 1;
+//        }
 
 //        for(std::string line; std::getline(ifs, line);)
         for(std::string line; std::getline(std::cin, line);)
