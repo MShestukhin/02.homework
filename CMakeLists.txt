@@ -1,12 +1,22 @@
-cmake_minimum_required(VERSION 2.8)
-set (CMAKE_CXX_STANDARD 14)
 cmake_minimum_required(VERSION 3.2)
-if($ENV{TRAVIS_BUILD_NUMBER})
+if(DEFINED $ENV{TRAVIS_BUILD_NUMBER})
     project(ip_filter VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
 else ()
     project(ip_filter VERSION 0.0.1)
 endif()
-add_executable(${PROJECT_NAME} "main.cpp")
+
+find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+
+add_executable(ip_filter main.cpp)
+
+set_target_properties(ip_filter PROPERTIES
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED ON
+)
+target_include_directories(ip_filter
+    PRIVATE "${CMAKE_BINARY_DIR}"
+)
+
 
 install(TARGETS ip_filter RUNTIME DESTINATION bin)
 
@@ -19,3 +29,4 @@ set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_CONTACT example@example.com)
 
 include(CPack)
+
