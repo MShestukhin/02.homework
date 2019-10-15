@@ -5,7 +5,12 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
-
+#include <ifaddrs.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <iterator>
+#include <functional> // for std::greater, std::less
 // ("",  '.') -> [""]
 // ("11", '.') -> ["11"]
 // ("..", '.') -> ["", "", ""]
@@ -32,45 +37,42 @@ std::vector<std::string> split(const std::string &str, char d)
     return r;
 }
 
-void print_vctr(auto vector){
-    for(auto string : vector){
-        if(string!=*vector.cbegin())
-            std::cout<<".";
-        std::cout<<string;
-    }
-    std::cout<<std::endl;
-};
 
 int main(int argc, char const *argv[])
 {
     try
     {
-        std::vector<std::vector<std::string> > ip_pool;
-//        std::ifstream ifs("ip_filter.tsv");
-//        if (ifs.fail()) {
-//            std::cerr << "error" << std::endl;
-//            return 1;
-//        }
+        std::vector<uint32_t> ip_pool;
 
-//        for(std::string line; std::getline(ifs, line);)
         for(std::string line; std::getline(std::cin, line);)
         {
             std::vector<std::string> v = split(line, '\t');
-            ip_pool.push_back(split(v.at(0), '.'));
+            struct sockaddr_in antelope;
+            int addr=inet_aton(v.at(0).c_str(),&antelope.sin_addr);
+            int Ip1,Ip2,Ip3,Ip4;
+            if(addr)
+                ip_pool.push_back(antelope.sin_addr.s_addr);
         }
 
         // TODO reverse lexicographically sort
-        std::sort(ip_pool.rbegin(),ip_pool.rend(),
-        [](std::vector<std::string> &a, std::vector<std::string> &b){
-            int i=0;
-            while(i<a.size()-1 && std::stoi(a.at(i)) == std::stoi(b.at(i)))
-                  i++;
-            return std::stoi(a.at(i)) < std::stoi(b.at(i));
+
+        std::sort(ip_pool.begin(), ip_pool.end(), [](uint32_t a, uint32_t b){
+            if(((a) & 0xff) != ((b) & 0xff)) {
+                return ((a) & 0xff) > ((b) & 0xff);
+            }
+            else if (((a>>8) & 0xff) != ((b>>8) & 0xff)) {
+                return ((a>>8) & 0xff) > ((b>>8) & 0xff);
+            }
+            else if (((a>>16) & 0xff) != ((b>>16) & 0xff)) {
+                return ((a>>16) & 0xff) > ((b>>16) & 0xff);
+            }
+            else {
+                 return ((a>>24) & 0xff) > ((b>>24) & 0xff);
+            }
         });
 
-        for(auto ip : ip_pool)
-        {
-            print_vctr(ip);
+        for(const auto&  v : ip_pool){
+            std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
         }
 
 
@@ -86,9 +88,9 @@ int main(int argc, char const *argv[])
 
         // TODO filter by first byte and output
 
-        for(auto  v : ip_pool){
-            if(v.at(0)=="1")
-                print_vctr(v);
+        for(const auto&  v : ip_pool){
+            if(((v) & 0xff)==1)
+                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
         }
 
         // ip = filter(1)
@@ -102,9 +104,9 @@ int main(int argc, char const *argv[])
         // TODO filter by first and second bytes and output
         // ip = filter(46, 70)
 
-        for(auto  v : ip_pool){
-            if(v.at(0)=="46" && v.at(1)=="70")
-                print_vctr(v);
+        for(const auto&  v : ip_pool){
+            if(((v) & 0xff)==46 && ((v>>8) & 0xff)==70)
+                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
         }
 
         // 46.70.225.39
@@ -115,9 +117,19 @@ int main(int argc, char const *argv[])
         // TODO filter by any byte and output
         // ip = filter_any(46)
 
-        for( auto  v : ip_pool){
-            if ( std::find(v.begin(), v.end(), "46") != v.end())
-                print_vctr(v);
+        for( const auto&  v : ip_pool){
+            if (((v) & 0xff)==45){
+                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
+            }
+            else if(((v>>8) & 0xff) == 45){
+                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
+            }
+            else if (((v>>16) & 0xff) ==45){
+                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
+            }
+            else if (((v>>24) & 0xff) == 45){
+                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
+            }
         }
 
         // 186.204.34.46
