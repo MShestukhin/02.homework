@@ -1,44 +1,7 @@
 #include <cassert>
-#include <cstdlib>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <fstream>
-#include <algorithm>
-#include <ifaddrs.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <iterator>
-#include <functional> // for std::greater, std::less
-// ("",  '.') -> [""]
-// ("11", '.') -> ["11"]
-// ("..", '.') -> ["", "", ""]
-// ("11.", '.') -> ["11", ""]
-// (".11", '.') -> ["", "11"]
-// ("11.22", '.') -> ["11", "22"]
+#include "ip_lib.h"
 
-std::vector<std::string> split(const std::string &str, char d)
-{
-    std::vector<std::string> r;
-
-    std::string::size_type start = 0;
-    std::string::size_type stop = str.find_first_of(d);
-    while(stop != std::string::npos)
-    {
-        r.push_back(str.substr(start, stop - start));
-
-        start = stop + 1;
-        stop = str.find_first_of(d, start);
-    }
-
-    r.push_back(str.substr(start));
-
-    return r;
-}
-
-
-int main(int argc, char const *argv[])
+int main()
 {
     try
     {
@@ -118,18 +81,9 @@ int main(int argc, char const *argv[])
         // ip = filter_any(46)
 
         for( const auto&  v : ip_pool){
-            if (((v) & 0xff)==45){
-                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
-            }
-            else if(((v>>8) & 0xff) == 45){
-                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
-            }
-            else if (((v>>16) & 0xff) ==45){
-                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
-            }
-            else if (((v>>24) & 0xff) == 45){
-                std::cout<<inet_ntoa(*(struct in_addr*)&v)<<std::endl;
-            }
+            std::string ip=find_ip_where_octet(v,45);
+            if(ip.size())
+                std::cout<<ip<<std::endl;
         }
 
         // 186.204.34.46

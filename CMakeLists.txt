@@ -5,11 +5,18 @@ else ()
     project(ip_filter VERSION 0.0.1)
 endif()
 
+FILE(GLOB_RECURSE LibFiles "*.h")
+add_custom_target(headers SOURCES ${LibFiles})
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
 add_executable(ip_filter main.cpp)
+add_executable(test_ip_filter test_ip_filter.cpp)
+set_target_properties(test_ip_filter PROPERTIES
+    COMPILE_DEFINITIONS BOOST_TEST_DYN_LINK
+    INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR}
+)
 
-set_target_properties(ip_filter PROPERTIES
+set_target_properties(ip_filter test_ip_filter PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
 )
@@ -30,3 +37,6 @@ set(CPACK_PACKAGE_CONTACT example@example.com)
 
 include(CPack)
 
+enable_testing()
+
+add_test(test_ip_filter test_ip_filter)
